@@ -3,43 +3,10 @@ import { promises as fs } from 'fs';
 import { CacheHelper } from '@/server/helpers/CacheHelper';
 import { lookup } from 'mime-types';
 import { ProcessHelper } from '@/server/helpers/ProcessHelper';
+import type { VideoInfo } from '@/types/video';
 import { VIDEO_LIST_FILE, DOWNLOAD_PATH, CACHE_PATH } from '@/server/constants';
-import type { VideoFileVariant, VideoInfo } from '@/types/video';
 
 export const dynamic = 'force-dynamic';
-
-type FileVariant = 'auto' | 'original' | 'safari';
-
-function isSafariRequest(userAgent: string) {
-  const isAppleMobile = /\b(iPhone|iPad|iPod)\b/i.test(userAgent);
-  const isSafari = /Safari/i.test(userAgent);
-  const isChromium = /Chrome|Chromium|CriOS|FxiOS|Edg|OPR|Android/i.test(userAgent);
-
-  return isAppleMobile || (isSafari && !isChromium);
-}
-
-function selectVideoFile({
-  isDownload,
-  userAgent,
-  variant,
-  videoInfo
-}: {
-  isDownload: boolean;
-  userAgent: string;
-  variant: FileVariant;
-  videoInfo?: VideoInfo;
-}): VideoFileVariant | VideoInfo['file'] | undefined {
-  if (!videoInfo) return;
-
-  const original = videoInfo.files?.original || videoInfo.file;
-  const safari = videoInfo.files?.safari;
-
-  if (variant === 'original') return original;
-  if (variant === 'safari') return safari || original;
-  if (isDownload) return original;
-
-  return isSafariRequest(userAgent) ? safari || original : original;
-}
 
 export async function GET(request: Request) {
   try {
@@ -47,7 +14,6 @@ export async function GET(request: Request) {
     const searchParams = urlObject.searchParams;
     const uuid = searchParams.get('uuid');
     const isDownload = searchParams.get('download') === 'true';
-    const variant = (searchParams.get('variant') || 'auto') as FileVariant;
 
     try {
       if (typeof uuid !== 'string') {
@@ -63,14 +29,7 @@ export async function GET(request: Request) {
 
     const videoInfo = await CacheHelper.get<VideoInfo>(uuid);
 
-    const selectedFile = selectVideoFile({
-      isDownload,
-      userAgent: request.headers.get('user-agent') || '',
-      variant: ['auto', 'original', 'safari'].includes(variant) ? variant : 'auto',
-      videoInfo
-    });
-
-    const videoPath = selectedFile?.path;
+    const videoPath = videoInfo?.file?.path;
     if (!videoPath) {
       throw 'videoPath is not found';
     }
@@ -121,8 +80,8 @@ export async function GET(request: Request) {
         'Content-Disposition': `${
           isDownload ? 'attachment; ' : ''
         }filename*=utf-8''${encodeURIComponent(
-          selectedFile.name || 'Untitled.mp4'
-        )}; filename="${Buffer.from(selectedFile.name || 'Untitled.mp4').toString('binary')}";`
+          videoInfo.file.name || 'Untitled.mp4'
+        )}; filename="${Buffer.from(videoInfo.file.name || 'Untitled.mp4').toString('binary')}";`
       },
       status: 200
     });
@@ -177,10 +136,6 @@ export async function DELETE(request: Request) {
       try {
         if (deleteFile && videoInfo.file.path) {
           await fs.unlink(videoInfo.file.path);
-          const safariPath = videoInfo.files?.safari?.path;
-          if (safariPath && safariPath !== videoInfo.file.path) {
-            await fs.unlink(safariPath).catch(() => {});
-          }
           if (videoInfo.localThumbnail) {
             if (videoInfo.localThumbnail.startsWith(DOWNLOAD_PATH)) {
               await fs.unlink(videoInfo.localThumbnail);

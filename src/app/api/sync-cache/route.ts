@@ -94,13 +94,6 @@ export async function POST() {
                 ...data.file,
                 ...streams
               };
-              data.files = {
-                ...data.files,
-                original: {
-                  ...data.file,
-                  source: 'original'
-                }
-              };
             } catch (error) {}
             await CacheHelper.set(uuid, data);
           } catch (e) {}
