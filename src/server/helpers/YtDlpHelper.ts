@@ -737,6 +737,7 @@ export class YtDlpHelper {
     videoInfo.description = metadata?.description || '';
     videoInfo.thumbnail = metadata?.thumbnail || '';
     videoInfo.isLive = metadata?.isLive || false;
+    videoInfo.duration = metadata?.duration || undefined;
     videoInfo.updatedAt = Date.now();
     videoInfo.createdAt = Date.now();
     videoInfo.download.pid = ytdlp.pid!;

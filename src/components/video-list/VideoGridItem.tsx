@@ -8,7 +8,7 @@ import { CircleLoader } from '@/components/modules/CircleLoader';
 import { PingSvg } from '@/components/modules/PingSvg';
 import { isMobile } from '@/client/utils';
 import { FcRemoveImage } from 'react-icons/fc';
-import { AiOutlineCloudDownload, AiOutlineInfoCircle } from 'react-icons/ai';
+import { AiOutlineCloudDownload, AiOutlineInfoCircle, AiOutlineFileText } from 'react-icons/ai';
 import { VscRefresh, VscWarning } from 'react-icons/vsc';
 import { MdOutlineVideocamOff, MdStop } from 'react-icons/md';
 import { CgPlayListSearch } from 'react-icons/cg';
@@ -30,6 +30,8 @@ import { shallow } from 'zustand/shallow';
 import { TbPlaylistX } from 'react-icons/tb';
 import { PlaylistViewer } from './PlaylistViewer';
 import { DownloadOptionsInfoDialog } from './DownloadOptionsInfoDialog';
+import { VideoInfoDialog } from './VideoInfoDialog';
+import { DownloadChoiceDialog } from './DownloadChoiceDialog';
 
 export type VideoGridItemProps = {
   video: VideoInfo;
@@ -276,6 +278,26 @@ export const VideoGridItem = ({ video }: VideoGridItemProps) => {
 
   const handleCloseDownloadOptionsInfo = () => {
     setOpenDownloadOptionsInfo(false);
+  };
+
+  const [openVideoInfo, setOpenVideoInfo] = useState(false);
+
+  const handleClickVideoInfo = () => {
+    setOpenVideoInfo(true);
+  };
+
+  const handleCloseVideoInfo = () => {
+    setOpenVideoInfo(false);
+  };
+
+  const [openDownloadChoice, setOpenDownloadChoice] = useState(false);
+
+  const handleClickDownload = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (video.convertedFile) {
+      e.preventDefault();
+      setOpenDownloadChoice(true);
+    }
+    // Geen converted file → normale <a> download gaat gewoon door
   };
 
   useEffect(() => {
@@ -587,17 +609,11 @@ encode speed ${video.download.ffmpeg.speed}`
             <div className='flex items-center'>
               <Button
                 size='sm'
-                className='p-0 h-[1.7em] text-lg bg-info hover:bg-info/90 rounded-xl rounded-r-none'
+                className='h-[1.7em] text-lg rounded-xl rounded-r-none bg-info hover:bg-info/90 border-l border-info-foreground/20'
+                onClick={handleClickVideoInfo}
+                title='Video Info'
               >
-                <a
-                  className='flex items-center w-full h-full px-3'
-                  href={video.url || ''}
-                  rel='noopener noreferrer'
-                  target='_blank'
-                  title='Open Original Link'
-                >
-                  <LinkIcon className='text-base' size='1em' />
-                </a>
+                <AiOutlineFileText />
               </Button>
               {isCompleted ? (
                 video.type === 'playlist' ? (
@@ -610,7 +626,7 @@ encode speed ${video.download.ffmpeg.speed}`
                     <CgPlayListSearch />
                   </Button>
                 ) : (
-                  <Button size='sm' className='p-0 h-[1.7em] text-lg rounded-xl rounded-l-none'>
+                  <Button size='sm' className='relative p-0 h-[1.7em] text-lg rounded-xl rounded-l-none'>
                     <a
                       className='flex items-center w-full h-full px-3'
                       href={isCompleted ? `/api/file?uuid=${video.uuid}&download=true` : ''}
@@ -618,8 +634,12 @@ encode speed ${video.download.ffmpeg.speed}`
                       target='_blank'
                       download={video?.status === 'completed' ? video.file.name : false}
                       title='Download Video'
+                      onClick={handleClickDownload}
                     >
                       <AiOutlineCloudDownload />
+                      {video.convertedFile && (
+                        <span className='absolute -top-1 -right-1 w-2 h-2 rounded-full bg-primary' />
+                      )}
                     </a>
                   </Button>
                 )
@@ -681,6 +701,21 @@ encode speed ${video.download.ffmpeg.speed}`
           open={openDownloadOptionsInfo}
           video={video}
           onClose={handleCloseDownloadOptionsInfo}
+        />
+      )}
+      {openVideoInfo && (
+        <VideoInfoDialog
+          open={openVideoInfo}
+          video={video}
+          onClose={handleCloseVideoInfo}
+        />
+      )}
+      {openDownloadChoice && (
+        <DownloadChoiceDialog
+          open={openDownloadChoice}
+          video={video}
+          onClose={() => setOpenDownloadChoice(false)}
+          onDeleteConverted={() => mutate('/api/list')}
         />
       )}
     </div>

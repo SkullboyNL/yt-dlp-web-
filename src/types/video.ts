@@ -86,6 +86,8 @@ export interface VideoInfo {
   outputFilename: string;
   selectQuality: SelectQuality;
   enableForceKeyFramesAtCuts: boolean;
+  duration?: number;
+  convertedFile?: { path: string; name: string } | null;
   file: Streams & {
     path: string | null;
     name: string | null;
