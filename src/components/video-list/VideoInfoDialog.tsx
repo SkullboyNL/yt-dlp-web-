@@ -25,9 +25,9 @@ type ConvertState =
 
 const DEFAULT_OPTIONS: ConvertOptions = {
   outputFormat: 'mp4',
-  videoCodec: 'libx264',
-  audioCodec: 'aac',
-  crf: 23,
+  videoCodec: 'h264_vaapi',
+  audioCodec: 'copy',
+  crf: 30,
   preset: 'veryfast',
   audioBitrate: '160k',
   scaleHeight: '',

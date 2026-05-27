@@ -73,54 +73,6 @@ export class FFmpegHelper {
     });
   }
 
-  async transcodeForSafari(outputPath?: string) {
-    const parsedPath = parse(this.filePath);
-    const nextOutputPath = outputPath || `${parsedPath.dir}/${parsedPath.name} [Safari].mp4`;
-
-    return new Promise((resolve: (filePath: string) => void, reject: (message: string) => void) => {
-      const ffmpeg = spawn('ffmpeg', [
-        '-y',
-        '-loglevel',
-        'repeat+info',
-        '-i',
-        this.filePath,
-        '-map',
-        '0:v:0',
-        '-map',
-        '0:a?',
-        '-dn',
-        '-ignore_unknown',
-        '-c:v',
-        'libx264',
-        '-preset',
-        'veryfast',
-        '-crf',
-        '20',
-        '-pix_fmt',
-        'yuv420p',
-        '-c:a',
-        'aac',
-        '-b:a',
-        '160k',
-        '-movflags',
-        '+faststart',
-        nextOutputPath
-      ]);
-
-      let stderr = '';
-      ffmpeg.stderr.setEncoding('utf-8');
-      ffmpeg.stderr.on('data', (data) => {
-        stderr += data?.trim?.() || '';
-      });
-      ffmpeg.on('close', (code) => {
-        if (code === 0) {
-          resolve(nextOutputPath);
-          return;
-        }
-        reject(stderr || 'Failed to transcode video for Safari');
-      });
-    });
-  }
 
   private async downloadImage(url: string) {
     const response = await fetch(url);

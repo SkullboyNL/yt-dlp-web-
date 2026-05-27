@@ -135,6 +135,8 @@ export interface Streams {
   rFrameRate?: number;
   colorPrimaries?: string;
   codecName?: string;
+  audioCodecName?: string;
+  containerName?: string;
   duration?: string;
 }
 
@@ -146,8 +148,12 @@ export interface FFmpegStreamsJson {
     r_frame_rate: string;
     color_primaries: string;
     codec_name: string;
+	codec_type: string;
     duration: string;
   }[];
+  format?: {
+    format_name?: string;
+  };
 }
 
 export type PlaylistMetadata = {
