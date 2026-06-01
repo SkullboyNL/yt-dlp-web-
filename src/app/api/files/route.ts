@@ -4,6 +4,7 @@ import { CacheHelper } from '@/server/helpers/CacheHelper';
 import { ProcessHelper } from '@/server/helpers/ProcessHelper';
 import type { VideoInfo } from '@/types/video';
 import { VIDEO_LIST_FILE } from '@/server/constants';
+import type { VideoFileVariant, VideoInfo } from '@/types/video';
 import { UserPlaylistHelper } from '@/server/helpers/UserPlaylistHelper';
 
 export const dynamic = 'force-dynamic';
