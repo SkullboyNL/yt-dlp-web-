@@ -10,6 +10,7 @@ import {
 } from '@/server/helpers/PermissionHelper';
 
 export const dynamic = 'force-dynamic';
+const FILENAME_LENGTH_LIMIT_CHARS = 80;
 
 export async function GET(request: Request) {
   const urlObject = new URL(request.url);
@@ -91,6 +92,7 @@ export async function GET(request: Request) {
       cutEndTime,
       proxyAddress: typeof proxyAddress === 'string' ? proxyAddress : '',
       outputFilename,
+      filenameLengthLimit: FILENAME_LENGTH_LIMIT_CHARS,
       selectQuality: !videoId && !audioId ? selectQuality : '',
       enableForceKeyFramesAtCuts
     });

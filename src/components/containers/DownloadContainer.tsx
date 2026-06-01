@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2 } from 'lucide-react';
+import { Info, Loader2 } from 'lucide-react';
 import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import {
   Select,
@@ -42,6 +42,7 @@ import { RiArrowUpSLine } from 'react-icons/ri';
 import { Divider } from '@/components/Divider';
 import { isPropsEquals } from '@/lib/utils';
 import numeral from 'numeral';
+import { OutputFilenameEditorField } from '@/components/OutputFilenameEditor';
 
 type AllMetadata = VideoMetadata | PlaylistMetadata | null;
 
@@ -385,6 +386,7 @@ const CookieOption = () => {
   );
 };
 
+
 const FileNameOption = () => {
   const {
     hydrated,
@@ -413,46 +415,42 @@ const FileNameOption = () => {
   const handleClickEnableOutputFilenameCheckbox = () => {
     setEnableOutputFilename(!enableOutputFilename);
   };
-
-  const handleChangeOutputFilename = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value || '';
-    setOutputFilename(value);
+  const handleClickFilenameInfo = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toast.info('yt-dlp trims the filename body to 80 characters by default, excluding extension.');
   };
 
   return (
-    <div className='flex items-center gap-x-1 flex-wrap'>
-      <Label
-        className='flex items-center pl-1 gap-x-1 shrink-0 cursor-pointer'
-        title='Enable Output Filename'
-      >
-        <Checkbox
-          name='enableOutputFilename'
-          checked={enableOutputFilename}
-          disabled={isNotHydrated}
-          onClick={handleClickEnableOutputFilenameCheckbox}
-        />
-        <span className='text-sm'>Output filename</span>
-      </Label>
-      <div className='flex items-center ml-auto sm:ml-0 lg:ml-auto'>
-        <Input
-          className='h-auto max-w-[160px] px-1 py-0.5 leading-[1]'
-          name='outputFileName'
-          value={!enableOutputFilename ? '' : outputFilename}
-          disabled={!enableOutputFilename}
-          placeholder='%(title)s (%(id)s)'
-          title='Output file name'
-          onChange={handleChangeOutputFilename}
-        />
-        <Input
-          className='h-auto max-w-[70px] px-1 py-0.5 leading-[1] text-muted-foreground'
-          defaultValue={'.%(ext)s'}
-          readOnly
-          onChange={handleChangeOutputFilename}
-          onClick={() => {
-            toast.info("You can't change the extension.");
-          }}
-        />
+    <div className='flex w-full flex-wrap items-start gap-2'>
+      <div className='flex shrink-0 items-center gap-x-1 pt-2'>
+        <Label
+          className='flex items-center pl-1 gap-x-1 cursor-pointer'
+          title='Enable Output Filename'
+        >
+          <Checkbox
+            name='enableOutputFilename'
+            checked={enableOutputFilename}
+            disabled={isNotHydrated}
+            onClick={handleClickEnableOutputFilenameCheckbox}
+          />
+          <span className='text-sm'>Output filename</span>
+        </Label>
+        <button
+          type='button'
+          className='inline-flex h-5 w-5 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+          aria-label='Filename trim length is 80 characters by default, excluding extension.'
+          title='Filename trim length is 80 characters by default, excluding extension.'
+          onClick={handleClickFilenameInfo}
+        >
+          <Info className='h-3.5 w-3.5 text-muted-foreground' />
+        </button>
       </div>
+      <OutputFilenameEditorField
+        value={!enableOutputFilename ? '' : outputFilename}
+        disabled={!enableOutputFilename}
+        onChange={setOutputFilename}
+      />
     </div>
   );
 };

@@ -84,6 +84,7 @@ export interface VideoInfo {
   cutStartTime: string;
   cutEndTime: string;
   outputFilename: string;
+  filenameLengthLimit: number;
   selectQuality: SelectQuality;
   enableForceKeyFramesAtCuts: boolean;
   duration?: number;

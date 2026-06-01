@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import type { VideoInfo } from '@/types/video';
+import type { SelectQuality, VideoInfo } from '@/types/video';
 import { YtDlpHelper } from '@/server/helpers/YtDlpHelper';
 import { CacheHelper } from '@/server/helpers/CacheHelper';
 import { ProcessHelper } from '@/server/helpers/ProcessHelper';
@@ -11,6 +11,13 @@ import {
 export const dynamic = 'force-dynamic';
 
 const encoder = new TextEncoder();
+
+const getBooleanOverride = (searchParams: URLSearchParams, key: string, fallback: boolean) => {
+  if (!searchParams.has(key)) {
+    return fallback;
+  }
+  return searchParams.get(key) === 'true';
+};
 
 // Restart Download
 export async function GET(request: Request) {
@@ -33,6 +40,24 @@ export async function GET(request: Request) {
     );
   }
   const url = videoInfo.url;
+  const selectQuality = (searchParams.get('selectQuality') || videoInfo?.selectQuality || '') as
+    | SelectQuality
+    | '';
+  const outputFilename = searchParams.has('outputFilename')
+    ? searchParams.get('outputFilename') || ''
+    : videoInfo?.outputFilename || '';
+  const proxyAddress = searchParams.has('proxyAddress')
+    ? searchParams.get('proxyAddress') || ''
+    : videoInfo?.proxyAddress || '';
+  const cutStartTime = searchParams.has('cutStartTime')
+    ? searchParams.get('cutStartTime') || ''
+    : videoInfo?.cutStartTime || '';
+  const cutEndTime = searchParams.has('cutEndTime')
+    ? searchParams.get('cutEndTime') || ''
+    : videoInfo?.cutEndTime || '';
+  const filenameLengthLimit = searchParams.has('filenameLengthLimit')
+    ? Number(searchParams.get('filenameLengthLimit') || 0)
+    : videoInfo?.filenameLengthLimit || 0;
 
   if (videoInfo?.download?.pid) {
     new ProcessHelper({ pid: videoInfo.download.pid }).kill();
@@ -44,22 +69,47 @@ export async function GET(request: Request) {
     audioId: videoInfo.audioId || '',
     format: videoInfo.format,
     uuid: videoInfo.uuid,
-    usingCookies: videoInfo?.usingCookies || false,
-    embedThumbnail: videoInfo?.embedThumbnail || false,
-    embedChapters: videoInfo?.embedChapters || false,
-    embedMetadata: videoInfo?.embedMetadata || false,
-    embedVideoThumbnail: videoInfo?.embedVideoThumbnail || false,
-    embedSubs: videoInfo?.embedSubs || false,
+    usingCookies: getBooleanOverride(searchParams, 'usingCookies', videoInfo?.usingCookies || false),
+    embedThumbnail: getBooleanOverride(
+      searchParams,
+      'embedThumbnail',
+      videoInfo?.embedThumbnail || false
+    ),
+    embedChapters: getBooleanOverride(
+      searchParams,
+      'embedChapters',
+      videoInfo?.embedChapters || false
+    ),
+    embedMetadata: getBooleanOverride(
+      searchParams,
+      'embedMetadata',
+      videoInfo?.embedMetadata || false
+    ),
+    embedVideoThumbnail: getBooleanOverride(
+      searchParams,
+      'embedVideoThumbnail',
+      videoInfo?.embedVideoThumbnail || false
+    ),
+    embedSubs: getBooleanOverride(searchParams, 'embedSubs', videoInfo?.embedSubs || false),
     subLangs: videoInfo?.subLangs || [],
-    enableProxy: videoInfo?.enableProxy || false,
-    proxyAddress: videoInfo?.proxyAddress || '',
-    enableLiveFromStart: videoInfo?.enableLiveFromStart || false,
-    cutVideo: videoInfo?.cutVideo || false,
-    cutStartTime: videoInfo?.cutStartTime || '',
-    cutEndTime: videoInfo?.cutEndTime || '',
-    outputFilename: videoInfo?.outputFilename || '',
-    selectQuality: videoInfo?.selectQuality || '',
-    enableForceKeyFramesAtCuts: videoInfo?.enableForceKeyFramesAtCuts || false
+    enableProxy: getBooleanOverride(searchParams, 'enableProxy', videoInfo?.enableProxy || false),
+    proxyAddress,
+    enableLiveFromStart: getBooleanOverride(
+      searchParams,
+      'enableLiveFromStart',
+      videoInfo?.enableLiveFromStart || false
+    ),
+    cutVideo: getBooleanOverride(searchParams, 'cutVideo', videoInfo?.cutVideo || false),
+    cutStartTime,
+    cutEndTime,
+    outputFilename,
+    filenameLengthLimit: Number.isNaN(filenameLengthLimit) ? 0 : filenameLengthLimit,
+    selectQuality,
+    enableForceKeyFramesAtCuts: getBooleanOverride(
+      searchParams,
+      'enableForceKeyFramesAtCuts',
+      videoInfo?.enableForceKeyFramesAtCuts || false
+    )
   });
 
   const stream = new ReadableStream({

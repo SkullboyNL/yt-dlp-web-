@@ -6,6 +6,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { shallow } from 'zustand/shallow';
 import { isDevelopment } from '@/lib/utils';
 
+const FILENAME_LENGTH_LIMIT_CHARS = 80;
+
 interface State {
   hydrated: boolean;
   isFetching: boolean;
@@ -26,6 +28,7 @@ interface State {
   cutEndTime: string;
   enableOutputFilename: boolean;
   outputFilename: string;
+  filenameLengthLimit: number;
   selectQuality: SelectQuality;
   enableForceKeyFramesAtCuts: boolean;
   subLangs: Array<string>;
@@ -92,6 +95,7 @@ const initialState: State = {
   cutEndTime: '',
   enableOutputFilename: true,
   outputFilename: '%(title)s (%(id)s)',
+  filenameLengthLimit: FILENAME_LENGTH_LIMIT_CHARS,
   selectQuality: 'best',
   enableForceKeyFramesAtCuts: false,
   subLangs: []
@@ -157,6 +161,7 @@ export const useDownloadFormStore = createWithEqualityFn(
         if (enableOutputFilename) {
           params.outputFilename = `${outputFilename}.%(ext)s`;
         }
+        params.filenameLengthLimit = FILENAME_LENGTH_LIMIT_CHARS;
         if (enableDownloadNow && !params.audioId && !params.videoId) {
           params.selectQuality = selectQuality;
         }
@@ -295,6 +300,7 @@ export const useDownloadFormStore = createWithEqualityFn(
             video.outputFilename && video.outputFilename !== '%(title)s (%(id)s).%(ext)s'
           ),
           outputFilename: newOutputFilename,
+          filenameLengthLimit: initialState.filenameLengthLimit,
           usingCookies: video.usingCookies ?? initialState.usingCookies,
           cutVideo: video.cutVideo ?? initialState.cutVideo,
           cutStartTime: video.cutStartTime ?? initialState.cutStartTime,

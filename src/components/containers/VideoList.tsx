@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { VideoListHeader } from '@/components/video-list/VideoListHeader';
 import { VideoListBody } from '@/components/video-list/VideoListBody';
 import { GetVideoList } from '@/server/yt-dlp-web';
+import type { UserPlaylists } from '@/types/userPlaylist';
 
 const MAX_INTERVAL_TIME = 120 * 1000;
 const MIN_INTERVAL_TIME = 3 * 1000;
@@ -16,6 +17,7 @@ export type VideoListProps = Partial<GetVideoList>;
 export function VideoList() {
   const refreshIntervalTimeRef = useRef(MIN_INTERVAL_TIME);
   const [search, setSearch] = useState('');
+  const [viewMode, setViewMode] = useState<'default' | 'playlists'>('default');
 
   const { data, isValidating, isLoading, mutate } = useSWR<GetVideoList>(
     '/api/list',
@@ -52,6 +54,13 @@ export function VideoList() {
       errorRetryCount: 1
     }
   );
+  const { data: userPlaylists } = useSWR<UserPlaylists>(
+    '/api/playlists',
+    async () => axios.get<UserPlaylists>('/api/playlists').then((res) => res.data),
+    {
+      errorRetryCount: 1
+    }
+  );
 
   const handleClickReloadButton = mutate;
 
@@ -76,9 +85,17 @@ export function VideoList() {
         isValidating={isValidating}
         search={search}
         setSearch={setSearch}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
         onClickReloadButton={handleClickReloadButton}
       />
-      <VideoListBody orders={filteredOrder} items={data?.items} isLoading={isLoading} />
+      <VideoListBody
+        orders={filteredOrder}
+        items={data?.items}
+        userPlaylists={userPlaylists}
+        viewMode={viewMode}
+        isLoading={isLoading}
+      />
     </Card>
   );
 }

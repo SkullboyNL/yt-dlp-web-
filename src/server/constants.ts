@@ -4,6 +4,7 @@ export const DOWNLOAD_PATH = path.join('/', 'downloads');
 export const CACHE_PATH = path.join('/', 'cache');
 
 export const VIDEO_LIST_FILE = 'video-list';
+export const USER_PLAYLISTS_FILE = 'user-playlists';
 export const COOKIES_FILE = 'cookies';
 export const WRITE_TEST_FILE = 'write-test';
 

@@ -4,6 +4,7 @@ import { CacheHelper } from '@/server/helpers/CacheHelper';
 import { ProcessHelper } from '@/server/helpers/ProcessHelper';
 import type { VideoInfo } from '@/types/video';
 import { VIDEO_LIST_FILE } from '@/server/constants';
+import { UserPlaylistHelper } from '@/server/helpers/UserPlaylistHelper';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,6 +68,7 @@ export async function DELETE(request: Request) {
         } catch (e) {}
 
         await CacheHelper.delete(videoInfo.uuid);
+        await UserPlaylistHelper.removeUuid(videoInfo.uuid);
       }
     } catch (e) {}
     await CacheHelper.set(VIDEO_LIST_FILE, videoList);
